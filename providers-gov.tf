@@ -5,7 +5,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"  # Pin to your tested version
+      version = "~> 4.0"  # Match aztfexport output version
     }
   }
   required_version = ">= 1.5.0"
@@ -21,7 +21,6 @@ provider "azurerm" {
     
     virtual_machine {
       delete_os_disk_on_deletion     = true
-      graceful_shutdown              = false
       skip_shutdown_and_force_delete = false
     }
     

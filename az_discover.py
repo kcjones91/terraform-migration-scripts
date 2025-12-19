@@ -380,8 +380,8 @@ Examples:
                         help='Include resource counts per RG (slower)')
     parser.add_argument('--create-structure', '-c', action='store_true',
                         help='Create folder structure')
-    parser.add_argument('--base-path', '-b', type=Path, default=Path('./terraform'),
-                        help='Base path for folder structure (default: ./terraform)')
+    parser.add_argument('--base-path', '-b', type=Path, default=None,
+                        help='Base path for folder structure (default: ./terraform). Use absolute or relative path.')
     parser.add_argument('--output', '-o', type=Path,
                         help='Save inventory to JSON file')
     parser.add_argument('--subscription-filter', '-f', type=str,
@@ -439,19 +439,79 @@ Examples:
     
     # Create folder structure
     if args.create_structure:
-        print(f"\nCreating folder structure in: {args.base_path}")
-        created = create_folder_structure(inventory, args.base_path)
+        # Determine base path
+        if args.base_path is None:
+            # Interactive path selection
+            print("\nChoose base path for folder structure:")
+            print("  1. ./terraform (relative to current directory)")
+            print("  2. ./legacy-import (relative to current directory)")
+            print("  3. Enter custom path")
+
+            choice = input("\nEnter choice [1-3] (default: 1): ").strip() or "1"
+
+            if choice == "1":
+                base_path = Path('./terraform')
+            elif choice == "2":
+                base_path = Path('./legacy-import')
+            elif choice == "3":
+                custom_path = input("Enter custom path: ").strip()
+                if not custom_path:
+                    print("Error: Path cannot be empty")
+                    return 1
+                base_path = Path(custom_path)
+            else:
+                print(f"Invalid choice: {choice}")
+                return 1
+        else:
+            base_path = args.base_path
+
+        # Resolve to absolute path for clarity
+        base_path = base_path.resolve()
+
+        print(f"\nCreating folder structure in: {base_path}")
+
+        # Confirm if directory exists and is not empty
+        if base_path.exists() and any(base_path.iterdir()):
+            print(f"\nWarning: Directory {base_path} already exists and is not empty.")
+            confirm = input("Continue? [y/N]: ").strip().lower()
+            if confirm != 'y':
+                print("Aborted.")
+                return 0
+
+        created = create_folder_structure(inventory, base_path)
         print(f"Created {len(created)} directories")
-        
+
         # Copy toolkit files
-        toolkit_source = get_script_dir()
-        toolkit_dest = args.base_path / 'toolkit'
+        toolkit_source = Path(__file__).parent.resolve()
+        toolkit_dest = base_path / 'toolkit'
         toolkit_dest.mkdir(parents=True, exist_ok=True)
-        
-        print(f"\nCopy the toolkit files to: {toolkit_dest}")
-        print("  - tf_splitter.py")
-        print("  - config/resource_mapping.yaml")
-        print("  - az_export_rg.py (export helper)")
+
+        # Copy scripts to toolkit directory
+        scripts_to_copy = [
+            'tf_splitter.py',
+            'az_export_rg.py',
+            'generate_outputs.py',
+            'generate_catalog.py',
+            'resource_mapping.yaml'
+        ]
+
+        import shutil
+
+        copied_files = []
+        for script_file in scripts_to_copy:
+            source_file = toolkit_source / script_file
+            if source_file.exists():
+                dest_file = toolkit_dest / script_file
+                shutil.copy2(source_file, dest_file)
+                copied_files.append(script_file)
+
+        print(f"\nCopied toolkit files to: {toolkit_dest}")
+        for file in copied_files:
+            print(f"  ✓ {file}")
+
+        if len(copied_files) < len(scripts_to_copy):
+            missing = set(scripts_to_copy) - set(copied_files)
+            print(f"\nWarning: Could not copy: {', '.join(missing)}")
 
 
 if __name__ == '__main__':

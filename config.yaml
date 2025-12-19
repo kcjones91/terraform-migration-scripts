@@ -1,0 +1,178 @@
+# =============================================================================
+# Terraform Migration Scripts - Central Configuration
+# =============================================================================
+# This file contains all shared configuration for the migration toolkit.
+# Edit this file to customize for your environment.
+
+# =============================================================================
+# TERRAFORM VERSIONS
+# =============================================================================
+terraform:
+  # Version constraint for all Terraform configurations
+  required_version: ">= 1.5.0"
+
+  # Provider versions (use ~> for minor version flexibility)
+  providers:
+    azurerm:
+      source: "hashicorp/azurerm"
+      version: "~> 4.0"  # Match aztfexport output version
+
+    artifactory:
+      source: "jfrog/artifactory"
+      version: "~> 10.0"
+
+# =============================================================================
+# AZURE BACKEND CONFIGURATION
+# =============================================================================
+backend:
+  # Azure storage account for Terraform state
+  resource_group_name: "tfstate-rg"
+  storage_account_name: "tfstatemigrate3199"  # Must be globally unique
+  container_name: "tfstate"
+
+  # Azure Government users should set this to 'usgovernment'
+  environment: "public"  # Options: public, usgovernment
+
+  # State file naming convention
+  # {prefix}/{subscription}/{component}.tfstate
+  state_key_prefix: "legacy"
+
+  # Optional: Different subscription for state storage
+  # subscription_id: "state-subscription-id"
+
+# =============================================================================
+# ARTIFACTORY CONFIGURATION
+# =============================================================================
+artifactory:
+  # Artifactory instance URL
+  url: "https://artifactory.example.com"
+
+  # Backend configuration for Artifactory provider state
+  backend:
+    repo: "terraform-state-generic"
+    subpath: "artifactory"
+
+  # Authentication (use environment variables in production)
+  # Set these as environment variables:
+  #   ARTIFACTORY_ACCESS_TOKEN
+  #   ARTIFACTORY_API_KEY
+  #   ARTIFACTORY_USERNAME
+  #   ARTIFACTORY_PASSWORD
+
+# =============================================================================
+# AZURE DISCOVERY SETTINGS
+# =============================================================================
+discovery:
+  # Parallel processing
+  max_workers: 4
+
+  # Command timeouts (seconds)
+  default_timeout: 60
+  resource_list_timeout: 120
+
+  # Filters
+  skip_disabled_subscriptions: true
+
+  # Folder structure
+  folder_structure: "flat"  # Options: flat, hierarchical
+
+# =============================================================================
+# AZTFEXPORT SETTINGS
+# =============================================================================
+aztfexport:
+  # Default flags
+  non_interactive: true
+  append: false
+
+  # Backup settings
+  create_backup: true
+  backup_prefix: "raw"
+
+  # Post-export processing
+  auto_organize: true
+  auto_split: true
+
+# =============================================================================
+# RESOURCE ORGANIZATION
+# =============================================================================
+organization:
+  # Resource mapping configuration file
+  resource_mapping_file: "resource_mapping.yaml"
+
+  # Default file for unmapped resources
+  default_file: "other.tf"
+
+  # Output directory for organized files
+  organized_subdir: "organized"
+
+# =============================================================================
+# CATALOG GENERATION
+# =============================================================================
+catalog:
+  # Output keys to include in subscription catalog
+  output_keys:
+    - vnets
+    - subnets
+    - nsgs
+    - nics
+    - public_ips
+    - route_tables
+    - nat_gateways
+    - linux_vms
+    - windows_vms
+    - classic_vms
+    - managed_disks
+    - availability_sets
+    - vmss
+    - storage_accounts
+    - storage_containers
+    - sql_servers
+    - sql_databases
+    - cosmosdb_accounts
+    - key_vaults
+    - managed_identities
+    - resource_groups
+
+# =============================================================================
+# VALIDATION SETTINGS
+# =============================================================================
+validation:
+  # Pre-migration checks
+  require_clean_plan: true
+  check_provider_versions: true
+
+  # Post-migration checks
+  verify_outputs: true
+  check_state_consistency: true
+
+  # Drift detection
+  max_drift_resources: 0  # Fail if any drift detected
+  ignore_computed_attributes: true
+
+# =============================================================================
+# LOGGING & OUTPUT
+# =============================================================================
+logging:
+  # Verbosity level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+
+  # Log file location (relative to working directory)
+  log_file: "migration.log"
+
+  # Console output
+  show_timestamps: true
+  colorize_output: true
+
+# =============================================================================
+# MIGRATION WORKFLOW
+# =============================================================================
+workflow:
+  # Auto-apply outputs after state migration
+  auto_apply_outputs: true
+
+  # Confirm before destructive operations
+  require_confirmation: true
+
+  # Retry settings
+  max_retries: 3
+  retry_delay: 5  # seconds

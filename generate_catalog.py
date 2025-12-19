@@ -52,6 +52,12 @@ try:
 except ImportError:
     HAS_YAML = False
 
+try:
+    from config_loader import get_config, get_backend_config, get_provider_version, get_catalog_output_keys
+    HAS_CONFIG_LOADER = True
+except ImportError:
+    HAS_CONFIG_LOADER = False
+
 
 # =============================================================================
 # DEFAULT CONFIGURATION
@@ -59,7 +65,7 @@ except ImportError:
 
 DEFAULT_OUTPUT_KEYS = [
     "vnets",
-    "subnets", 
+    "subnets",
     "nsgs",
     "nics",
     "public_ips",
@@ -86,6 +92,20 @@ DEFAULT_BACKEND_CONFIG = {
     "storage_account_name": "tfstatestore",
     "container_name": "tfstate",
 }
+
+
+def get_default_backend_config() -> Dict[str, str]:
+    """Get backend configuration from config loader or defaults."""
+    if HAS_CONFIG_LOADER:
+        return get_backend_config()
+    return DEFAULT_BACKEND_CONFIG
+
+
+def get_default_output_keys() -> List[str]:
+    """Get output keys from config loader or defaults."""
+    if HAS_CONFIG_LOADER:
+        return get_catalog_output_keys()
+    return DEFAULT_OUTPUT_KEYS
 
 
 # =============================================================================
@@ -249,20 +269,28 @@ def generate_outputs_tf(rg_folders: List[Path], output_keys: List[str]) -> str:
 
 def generate_providers_tf(subscription_name: str, backend_config: Dict[str, str]) -> str:
     """Generate providers.tf for the catalog."""
+    # Get versions from config
+    if HAS_CONFIG_LOADER:
+        tf_version = get_config().get('terraform', {}).get('required_version', '>= 1.5.0')
+        azurerm_version = get_provider_version('azurerm')
+    else:
+        tf_version = ">= 1.5.0"
+        azurerm_version = "~> 4.0"
+
     return f'''# =============================================================================
 # PROVIDERS - Catalog for {subscription_name}
 # =============================================================================
 
 terraform {{
-  required_version = ">= 1.0"
-  
+  required_version = "{tf_version}"
+
   required_providers {{
     azurerm = {{
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "{azurerm_version}"
     }}
   }}
-  
+
   backend "azurerm" {{
     resource_group_name  = "{backend_config["resource_group_name"]}"
     storage_account_name = "{backend_config["storage_account_name"]}"
@@ -355,22 +383,25 @@ The script will create a /catalog/ folder with data.tf, outputs.tf, and provider
         help="Path to the subscription folder containing RG subfolders"
     )
     
+    # Get defaults from config
+    default_backend = get_default_backend_config()
+
     parser.add_argument(
         "--backend-rg",
         help="Resource group name for tfstate backend",
-        default=DEFAULT_BACKEND_CONFIG["resource_group_name"]
+        default=default_backend.get("resource_group_name", "tfstate-rg")
     )
-    
+
     parser.add_argument(
         "--backend-storage",
         help="Storage account name for tfstate backend",
-        default=DEFAULT_BACKEND_CONFIG["storage_account_name"]
+        default=default_backend.get("storage_account_name", "tfstatestore")
     )
-    
+
     parser.add_argument(
         "--backend-container",
         help="Container name for tfstate backend",
-        default=DEFAULT_BACKEND_CONFIG["container_name"]
+        default=default_backend.get("container_name", "tfstate")
     )
     
     parser.add_argument(
@@ -419,7 +450,7 @@ The script will create a /catalog/ folder with data.tf, outputs.tf, and provider
     if args.output_keys:
         output_keys = args.output_keys.split(",")
     else:
-        output_keys = DEFAULT_OUTPUT_KEYS
+        output_keys = get_default_output_keys()
     
     # Generate files
     data_tf = generate_data_tf(rg_folders, subscription_name, backend_config)

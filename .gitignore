@@ -1,0 +1,259 @@
+# =============================================================================
+# Terraform Migration Scripts - .gitignore
+# =============================================================================
+
+# =============================================================================
+# Terraform Files
+# =============================================================================
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files (NEVER commit state files!)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files, which are likely to contain sensitive data
+*.tfvars
+*.tfvars.json
+
+# Ignore override files as they are usually used to override resources locally
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Lock files (choose based on your team's preference)
+# Some teams commit .terraform.lock.hcl, others don't
+# .terraform.lock.hcl
+
+# =============================================================================
+# Python Files
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# =============================================================================
+# IDE and Editor Files
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs (PyCharm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# =============================================================================
+# OS Files
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# =============================================================================
+# Migration-Specific Files
+# =============================================================================
+
+# Backup directories created by scripts
+*_raw_*/
+*_backup_*/
+*.backup
+
+# Temporary export directories
+export-*/
+organized/
+
+# Log files
+*.log
+migration.log
+terraform.log
+
+# Inventory files (may contain sensitive subscription info)
+inventory.json
+*_inventory.json
+
+# Local configuration overrides
+config.local.yaml
+secrets.yaml
+*.secret.*
+
+# Azure CLI cache
+.azure/
+
+# Downloaded Terraform providers
+.terraform.d/
+
+# =============================================================================
+# Sensitive Data Patterns
+# =============================================================================
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Credentials and keys
+*credentials*
+*secrets*
+*password*
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Subscription IDs (except examples)
+*subscription-id*
+!*subscription-id.example*
+
+# Service Principal files
+sp-*.json
+service-principal*.json
+
+# =============================================================================
+# Build and Test Artifacts
+# =============================================================================
+
+# Test outputs
+test-results/
+test-output/
+
+# Terraform plans
+*.tfplan
+tfplan
+
+# Generated documentation
+docs/_build/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# =============================================================================
+# Project Specific
+# =============================================================================
+
+# Generated Terraform configurations (if auto-generated)
+# Uncomment if you don't want to track generated files
+# generated/
+# auto-generated/
+
+# Legacy import directories (be careful with this!)
+# legacy-import/*
+# !legacy-import/.gitkeep
+
+# Catalog directories (optional - depends on workflow)
+# **/catalog/
+
+# =============================================================================
+# Keep These Files
+# =============================================================================
+
+# Force include example files
+!*.example
+!.gitkeep
+!README.md
+
+# Force include configuration templates
+!config.yaml.example
+!backend.tf.example
